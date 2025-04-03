@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "140100165052",
+    "project_id": "birthdaylistapp",
+    "storage_bucket": "birthdaylistapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:140100165052:android:5fc0ea572601f3831a5fb9",
+        "android_client_info": {
+          "package_name": "com.example.birthdaylistmandatoryassignment"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsJv852J-_RRMndVZdmXJn0jw-A_PunOA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
