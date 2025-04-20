@@ -12,15 +12,22 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.google.firebase.auth.FirebaseUser
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
-    user : String?,
+    user : FirebaseUser?,
     logOut : () -> Unit,
-    onNavigateToLogIn: () -> Unit){
+    onNavigateToAuthentication: () -> Unit){
+
+    LaunchedEffect(user){
+        if (user != null){
+            onNavigateToAuthentication()
+        }
+    }
     TopAppBar(
         title = {
             Text("My Birthdays")
@@ -33,6 +40,7 @@ fun TopBar(
             if (user != null) {
                 IconButton(onClick = {
                     logOut()
+                    onNavigateToAuthentication()
                 }) {
                     Icon(
                         imageVector = Icons.Filled.Lock,
@@ -42,9 +50,14 @@ fun TopBar(
             }
         }
     )
-    LaunchedEffect(user) {
-        if (user != null) {
-            onNavigateToLogIn()
-        }
-    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TopBarPreview() {
+    TopBar(
+        user = null,
+        logOut = {},
+        onNavigateToAuthentication = {}
+    )
 }

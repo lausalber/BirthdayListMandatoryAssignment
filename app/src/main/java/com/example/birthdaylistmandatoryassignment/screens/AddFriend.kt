@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.birthdaylistmandatoryassignment.model.Friend
+import com.google.firebase.auth.FirebaseUser
 import java.util.Calendar
 
 @SuppressLint("DefaultLocale")
@@ -39,12 +41,13 @@ fun AddFriend(
     modifier: Modifier = Modifier,
     onNavigateToBirthdayList: () -> Unit,
     onNavigateBack: () -> Unit,
-    createFriend: (Friend) -> Unit = {}
+    createFriend: (Friend) -> Unit = {},
+    user: FirebaseUser? = null
 ) {
     var name by remember { mutableStateOf("") }
-    var day by remember { mutableStateOf(0) }
-    var month by remember { mutableStateOf(0) }
-    var year by remember { mutableStateOf(0) }
+    var day by remember { mutableIntStateOf(0) }
+    var month by remember { mutableIntStateOf(0) }
+    var year by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
 
     var isDatePickerDialogOpen by remember { mutableStateOf(false) }
@@ -111,7 +114,7 @@ fun AddFriend(
                     onNavigateToBirthdayList(); createFriend(
                     (Friend(
                         id = 0,
-                        userId = "Laus",
+                        userId = user!!.email.toString(),
                         name = name,
                         birthYear = year,
                         birthMonth = month,
@@ -138,6 +141,7 @@ fun AddFriend(
 fun AddFriendPreview() {
     AddFriend(
         onNavigateToBirthdayList = { },
-        onNavigateBack = { }
+        onNavigateBack = { },
+        user = null
     )
 }

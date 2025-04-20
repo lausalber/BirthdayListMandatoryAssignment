@@ -13,8 +13,8 @@ class FriendsViewModel(): ViewModel(){
         repository.getFriends()
     }
 
-    fun getMyFriends(userID : String?){
-        repository.getMyFriends(userID)
+    fun getMyFriends(){
+        repository.getMyFriends()
     }
 
     fun addFriend(friend: Friend){
@@ -28,4 +28,23 @@ class FriendsViewModel(): ViewModel(){
     fun updateFriend(friendId : Int?, friend : Friend){
         repository.update(friendId, friend)
     }
+
+    fun sortFriendsByName(ascending: Boolean){
+        repository.sortByName(ascending)
+    }
+
+    fun sortFriendsByAge(ascending: Boolean){
+        repository.sortByAge(ascending)
+    }
+
+    fun sortFriendsByBirthday(ascending: Boolean){
+        repository.sortByBirthday(ascending)
+    }
+
+    fun filterByName(name: String){
+        repository.filterByName(name)
+    }
+     fun filterByAge(age: Int){
+         repository.filterByAge(age)
+     }
 }

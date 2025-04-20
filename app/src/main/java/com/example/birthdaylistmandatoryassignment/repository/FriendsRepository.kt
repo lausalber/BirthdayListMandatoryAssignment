@@ -2,8 +2,11 @@ package com.example.birthdaylistmandatoryassignment.repository
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.example.birthdaylistmandatoryassignment.model.Friend
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -12,9 +15,9 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class FriendsRepository() {
+    private val auth = FirebaseAuth.getInstance()
+    var user: FirebaseUser? by mutableStateOf(auth.currentUser)
     private val baseUrl = "https://birthdaysrest.azurewebsites.net/api/"
-
-
     private val friendsService: FriendsService
     val friends: MutableState<List<Friend>> = mutableStateOf(listOf())
     val errorMessage = mutableStateOf("")
@@ -25,6 +28,7 @@ class FriendsRepository() {
             .addConverterFactory(GsonConverterFactory.create()) // GSON
             .build()
         friendsService = build.create(FriendsService::class.java)
+        getMyFriends()
     }
 
     fun getFriends() {
@@ -49,8 +53,15 @@ class FriendsRepository() {
         })
     }
 
-    fun getMyFriends(userID : String?) {
-        friendsService.getAllMyFriends(userID).enqueue(object : Callback<List<Friend>> {
+    fun getMyFriends() {
+        val currentUser = user
+        if (currentUser == null) {
+            errorMessage.value = "User is null"
+            Log.e("APPLE", "User is null")
+            return
+        }
+
+        friendsService.getAllMyFriends(currentUser.email).enqueue(object : Callback<List<Friend>> {
             override fun onResponse(call: Call<List<Friend>>, response: Response<List<Friend>>) {
                 if (response.isSuccessful) {
                     val friendList: List<Friend>? = response.body()
@@ -76,6 +87,7 @@ class FriendsRepository() {
             override fun onResponse(call: Call<Friend>, response: Response<Friend>) {
                 if (response.isSuccessful) {
                     errorMessage.value = ""
+                    getMyFriends()
                 } else {
                     val message = response.code().toString() + " " + response.message()
                     errorMessage.value = message
@@ -96,7 +108,7 @@ class FriendsRepository() {
                     Log.d("APPLE", "Delete: " + response.body())
                     errorMessage.value = ""
                     Log.d("APPLE", friend.userId)
-                    getMyFriends(friend.userId)
+                    getMyFriends()
                 } else {
                     val message = response.code().toString() + " " + response.message()
                     errorMessage.value = message
@@ -120,7 +132,7 @@ class FriendsRepository() {
                     Log.d("APPLE", "Updated: " + response.body())
                     errorMessage.value = ""
                     Log.d("APPLE", "update successful")
-                    getMyFriends(friend.userId)
+                    getMyFriends()
                 } else {
                     val message = response.code().toString() + " " + response.message()
                     errorMessage.value = message
@@ -134,5 +146,52 @@ class FriendsRepository() {
                 Log.e("APPLE", "Update $message")
             }
         })
+    }
+
+    fun sortByName(ascending: Boolean) {
+        friends.value = if (ascending) {
+            friends.value.sortedBy { it.name.lowercase() }
+        } else {
+            friends.value.sortedByDescending { it.name.lowercase() }
+        }
+    }
+
+    fun sortByAge(ascending: Boolean) {
+        friends.value = if (ascending) {
+            friends.value.sortedBy { it.age }
+        } else {
+            friends.value.sortedByDescending { it.age }
+        }
+    }
+
+    fun sortByBirthday(ascending: Boolean) {
+        friends.value = if (ascending) {
+            friends.value.sortedWith(compareBy({ it.birthYear }, { it.birthMonth }, { it.birthDayOfMonth }))
+        } else {
+            friends.value.sortedWith(compareByDescending<Friend> { it.birthYear }
+                .thenByDescending { it.birthMonth }
+                .thenByDescending { it.birthDayOfMonth })
+        }
+    }
+
+    fun filterByName(nameFragment: String) {
+        if (nameFragment.isEmpty()) {
+            getMyFriends()
+            return
+        }
+        friends.value =
+            friends.value.filter {
+                it.name.contains(nameFragment, ignoreCase = true)
+            }
+    }
+
+    fun filterByAge(age: Int) {
+        if (age == 0) {
+            getMyFriends()
+            return
+        }
+        friends.value = friends.value.filter {
+            it.age == age
+        }
     }
 }

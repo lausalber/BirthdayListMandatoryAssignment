@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.birthdaylistmandatoryassignment.model.Friend
@@ -120,4 +121,24 @@ fun EditFriend(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EditFriendPreview() {
+    val previewFriend = Friend(
+        id = 1,
+        userId = "user123",
+        name = "Alice Smith",
+        birthYear = 1999,
+        birthMonth = 7,
+        birthDayOfMonth = 14,
+        age = 29
+    )
+    EditFriend(
+        friend = previewFriend,
+        onNavigateToBirthdayList = {},
+        onNavigateBack = {},
+        updateFriend = { _, _ -> }
+    )
 }
