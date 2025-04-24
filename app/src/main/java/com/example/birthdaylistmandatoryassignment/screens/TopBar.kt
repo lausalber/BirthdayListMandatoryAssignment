@@ -19,16 +19,19 @@ import com.google.firebase.auth.FirebaseUser
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
-    user : FirebaseUser?,
-    logOut : () -> Unit,
-    onNavigateToAuthentication: () -> Unit){
+    user: FirebaseUser?,
+    logOut: () -> Unit,
+    onNavigateToAuthentication: () -> Unit
+) {
 
-    LaunchedEffect(user){
-        if (user != null){
+    LaunchedEffect(user) {
+        if (user != null) {
             onNavigateToAuthentication()
         }
     }
+
     TopAppBar(
+        modifier = modifier,
         title = {
             Text("My Birthdays")
         },

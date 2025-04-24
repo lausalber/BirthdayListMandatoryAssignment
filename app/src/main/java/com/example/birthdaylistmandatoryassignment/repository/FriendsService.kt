@@ -11,9 +11,6 @@ interface FriendsService {
     @GET("persons")
     fun getAllMyFriends(@Query("user_id") userID: String?): Call<List<Friend>>
 
-    @GET("persons/{friendId}")
-    fun getFriendById(@Path("friendId") id: Int): Call<Friend>
-
     @POST("persons")
     fun createFriend(@Body friend: Friend): Call<Friend>
 

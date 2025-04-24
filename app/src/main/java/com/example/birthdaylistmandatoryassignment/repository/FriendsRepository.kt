@@ -17,18 +17,25 @@ import retrofit2.Response
 class FriendsRepository() {
     private val auth = FirebaseAuth.getInstance()
     var user: FirebaseUser? by mutableStateOf(auth.currentUser)
+        private set
     private val baseUrl = "https://birthdaysrest.azurewebsites.net/api/"
     private val friendsService: FriendsService
     val friends: MutableState<List<Friend>> = mutableStateOf(listOf())
     val errorMessage = mutableStateOf("")
 
+    private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        user = firebaseAuth.currentUser
+        getMyFriends()
+    }
+
     init {
         val build: Retrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create()) // GSON
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
         friendsService = build.create(FriendsService::class.java)
-        getMyFriends()
+
+        auth.addAuthStateListener(authStateListener)
     }
 
     fun getFriends() {
@@ -38,10 +45,11 @@ class FriendsRepository() {
                     val friendList: List<Friend>? = response.body()
                     friends.value = friendList ?: emptyList()
                     errorMessage.value = ""
+                    Log.d("APPLE", "Friends were successfully fetched")
                 } else {
                     val message = response.code().toString() + " " + response.message()
                     errorMessage.value = message
-                    Log.e("APPLE", message)
+                    Log.e("APPLE", "Fetch failed: $message")
                 }
             }
 
@@ -57,7 +65,7 @@ class FriendsRepository() {
         val currentUser = user
         if (currentUser == null) {
             errorMessage.value = "User is null"
-            Log.e("APPLE", "User is null")
+            Log.e("APPLE", "Could not fetch friends: User is null")
             return
         }
 
@@ -67,17 +75,18 @@ class FriendsRepository() {
                     val friendList: List<Friend>? = response.body()
                     friends.value = friendList ?: emptyList()
                     errorMessage.value = ""
+                    Log.d("APPLE", "Friends were successfully fetched")
                 } else {
                     val message = response.code().toString() + " " + response.message()
                     errorMessage.value = message
-                    Log.e("APPLE", message)
+                    Log.e("APPLE", "Friends were not fetched: $message")
                 }
             }
 
             override fun onFailure(call: Call<List<Friend>>, t: Throwable) {
                 val message = t.message ?: "No connection to back-end"
                 errorMessage.value = message
-                Log.e("APPLE", message)
+                Log.e("APPLE", "Friends were not fetched: $message")
             }
         })
     }
@@ -87,16 +96,19 @@ class FriendsRepository() {
             override fun onResponse(call: Call<Friend>, response: Response<Friend>) {
                 if (response.isSuccessful) {
                     errorMessage.value = ""
+                    Log.d("APPLE", "Add: " + response.body())
                     getMyFriends()
                 } else {
                     val message = response.code().toString() + " " + response.message()
                     errorMessage.value = message
+                    Log.e("APPLE", "Not added: $message")
                 }
             }
 
             override fun onFailure(call: Call<Friend>, t: Throwable) {
                 val message = t.message ?: "No connection to back-end"
                 errorMessage.value = message
+                Log.e("APPLE", "Not added: $message")
             }
         })
     }
@@ -105,9 +117,8 @@ class FriendsRepository() {
         friendsService.deleteFriend(friend.id).enqueue(object : Callback<Friend> {
             override fun onResponse(call: Call<Friend>, response: Response<Friend>) {
                 if (response.isSuccessful) {
-                    Log.d("APPLE", "Delete: " + response.body())
                     errorMessage.value = ""
-                    Log.d("APPLE", friend.userId)
+                    Log.d("APPLE", "Friend was deleted: " + response.body())
                     getMyFriends()
                 } else {
                     val message = response.code().toString() + " " + response.message()
@@ -119,31 +130,29 @@ class FriendsRepository() {
             override fun onFailure(call: Call<Friend>, t: Throwable) {
                 val message = t.message ?: "No connection to back-end"
                 errorMessage.value = message
-                Log.e("APPLE", "Not deleted $message")
+                Log.e("APPLE", "Not deleted: $message")
             }
         })
     }
 
-    fun update(friendId : Int?, friend : Friend) {
-        Log.d("APPLE", "Update: $friendId $friend")
+    fun update(friendId: Int?, friend: Friend) {
         friendsService.updateFriend(friendId, friend).enqueue(object : Callback<Friend> {
             override fun onResponse(call: Call<Friend>, response: Response<Friend>) {
                 if (response.isSuccessful) {
-                    Log.d("APPLE", "Updated: " + response.body())
                     errorMessage.value = ""
-                    Log.d("APPLE", "update successful")
+                    Log.d("APPLE", "Update successful: " + response.body())
                     getMyFriends()
                 } else {
                     val message = response.code().toString() + " " + response.message()
                     errorMessage.value = message
-                    Log.e("APPLE", "Update $message")
+                    Log.e("APPLE", "Update wasn't successful: $message")
                 }
             }
 
             override fun onFailure(call: Call<Friend>, t: Throwable) {
                 val message = t.message ?: "No connection to back-end"
                 errorMessage.value = message
-                Log.e("APPLE", "Update $message")
+                Log.e("APPLE", "Update wasn't successful: $message")
             }
         })
     }
@@ -166,7 +175,12 @@ class FriendsRepository() {
 
     fun sortByBirthday(ascending: Boolean) {
         friends.value = if (ascending) {
-            friends.value.sortedWith(compareBy({ it.birthYear }, { it.birthMonth }, { it.birthDayOfMonth }))
+            friends.value.sortedWith(
+                compareBy(
+                    { it.birthYear },
+                    { it.birthMonth },
+                    { it.birthDayOfMonth })
+            )
         } else {
             friends.value.sortedWith(compareByDescending<Friend> { it.birthYear }
                 .thenByDescending { it.birthMonth }
